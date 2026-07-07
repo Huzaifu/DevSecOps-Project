@@ -271,7 +271,6 @@ To securely handle DockerHub credentials in your Jenkins pipeline, follow these 
 Now, you have installed the Dependency-Check plugin, configured the tool, and added Docker-related plugins along with your DockerHub credentials in Jenkins. You can now proceed with configuring your Jenkins pipeline to include these tools and credentials in your CI/CD process.
 
 pipeline{
-
     agent any
     
     tools{
