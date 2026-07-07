@@ -623,6 +623,8 @@ To begin monitoring your Kubernetes cluster, you'll install the Prometheus Node 
 
 2.Create a Kubernetes namespace for the Node Exporter:
 
+
+
 **kubectl create namespace prometheus-node-exporter**
 
 3.Install the Node Exporter using Helm:
