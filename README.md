@@ -37,12 +37,15 @@ Clone your application's code repository onto the EC2 instance:
 
 - Build and run your application using Docker containers:
 
-**docker build -t netflix .
-docker run -d --name netflix -p 8081:80 netflix:latest**
+**docker build -t netflix .**
 
-**#to delete
-docker stop <containerid>
-docker rmi -f netflix**
+**docker run -d --name netflix -p 8081:80 netflix:latest**
+
+**#to delete**
+
+**docker stop <containerid>**
+
+**docker rmi -f netflix**
 
 It will show an error cause you need API key
 
@@ -76,11 +79,15 @@ publicIP:9000 (by default username & password is admin)
 
 To install Trivy:
 
-**sudo apt-get install wget apt-transport-https gnupg lsb-release
-wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
-echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee -a /etc/apt/sources.list.d/trivy.list
-sudo apt-get update
-sudo apt-get install trivy**    
+**sudo apt-get install wget apt-transport-https gnupg lsb-release**
+
+**wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -**
+
+**echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee -a /etc/apt/sources.list.d/trivy.list**
+
+**sudo apt-get update**
+
+**sudo apt-get install trivy**    
 
 to scan image using trivy
 
@@ -97,24 +104,31 @@ Configure SonarQube to analyze code for quality and security issues.
 
 Install Jenkins on the EC2 instance to automate deployment: Install Java
 
-**sudo apt update
-sudo apt install fontconfig openjdk-17-jre
-java -version
+**sudo apt update**
+
+**sudo apt install fontconfig openjdk-17-jre**
+
+**java -version**
+
 openjdk version "17.0.8" 2023-07-18
+
 OpenJDK Runtime Environment (build 17.0.8+7-Debian-1deb12u1)
-OpenJDK 64-Bit Server VM (build 17.0.8+7-Debian-1deb12u1, mixed mode, sharing)**
+
+OpenJDK 64-Bit Server VM (build 17.0.8+7-Debian-1deb12u1, mixed mode, sharing)
 
 **#jenkins**
 
-**sudo wget -O /usr/share/keyrings/jenkins-keyring.asc \
-https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
-echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] \
-https://pkg.jenkins.io/debian-stable binary/ | sudo tee \
-/etc/apt/sources.list.d/jenkins.list > /dev/null
-sudo apt-get update
-sudo apt-get install jenkins
-sudo systemctl start jenkins
-sudo systemctl enable jenkins**
+**sudo wget -O /usr/share/keyrings/jenkins-keyring.asc https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key**
+
+**echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/ | sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null**
+
+**sudo apt-get update**
+
+**sudo apt-get install jenkins**
+
+**sudo systemctl start jenkins**
+
+**sudo systemctl enable jenkins**
 
 Access Jenkins in a web browser using the public IP of your EC2 instance.
 
@@ -160,26 +174,32 @@ Create a Jenkins webhook
 
 Create a CI/CD pipeline in Jenkins to automate your application deployment.
 
-**pipeline {
+pipeline {
+
     agent any
+    
     tools {
         jdk 'jdk17'
         nodejs 'node16'
     }
+    
     environment {
         SCANNER_HOME = tool 'sonar-scanner'
     }
+    
     stages {
         stage('clean workspace') {
             steps {
                 cleanWs()
             }
         }
+    
         stage('Checkout from Git') {
             steps {
                 git branch: 'main', url: 'https://github.com/N4si/DevSecOps-Project.git'
             }
         }
+       
         stage("Sonarqube Analysis") {
             steps {
                 withSonarQubeEnv('sonar-server') {
@@ -188,6 +208,7 @@ Create a CI/CD pipeline in Jenkins to automate your application deployment.
                 }
             }
         }
+        
         stage("quality gate") {
             steps {
                 script {
@@ -195,13 +216,14 @@ Create a CI/CD pipeline in Jenkins to automate your application deployment.
                 }
             }
         }
+        
         stage('Install Dependencies') {
             steps {
                 sh "npm install"
             }
         }
     }
-}**
+}
 
 Certainly, here are the instructions without step numbers:
 
@@ -248,57 +270,69 @@ To securely handle DockerHub credentials in your Jenkins pipeline, follow these 
 
 Now, you have installed the Dependency-Check plugin, configured the tool, and added Docker-related plugins along with your DockerHub credentials in Jenkins. You can now proceed with configuring your Jenkins pipeline to include these tools and credentials in your CI/CD process.
 
-**pipeline{**
-    **agent any
+pipeline{
+
+    agent any
+    
     tools{
         jdk 'jdk17'
         nodejs 'node16'
     }
+    
     environment {
         SCANNER_HOME=tool 'sonar-scanner'
     }
+    
     stages {
+        
         stage('clean workspace'){
             steps{
                 cleanWs()
             }
-        }**
-        **stage('Checkout from Git'){
+        }
+        
+        stage('Checkout from Git'){
             steps{
                 git branch: 'main', url: 'https://github.com/N4si/DevSecOps-Project.git'
             }
-        }**
-        **stage("Sonarqube Analysis "){
+        }
+        
+        stage("Sonarqube Analysis "){
             steps{
                 withSonarQubeEnv('sonar-server') {
                     sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Netflix \
                     -Dsonar.projectKey=Netflix '''
                 }
             }
-        }**
-        **stage("quality gate"){
+        }
+        
+        stage("quality gate"){
            steps {
                 script {
                     waitForQualityGate abortPipeline: false, credentialsId: 'Sonar-token' 
                 }
             } 
-        }**
-        **stage('Install Dependencies') {
+        }
+        
+        stage('Install Dependencies') {
             steps {
                 sh "npm install"
             }
-        }**
-        **stage('OWASP FS SCAN') {
+        }
+        
+        stage('OWASP FS SCAN') {
             steps {
                 dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit', odcInstallation: 'DP-Check'
                 dependencyCheckPublisher pattern: '****/dependency-check-report.xml'
             }
         }
+        
         stage('TRIVY FS SCAN') {
             steps {
                 sh "trivy fs . > trivyfs.txt"
             }
         }
+        
         stage("Docker Build & Push"){
             steps{
                 script{
@@ -310,25 +344,29 @@ Now, you have installed the Dependency-Check plugin, configured the tool, and ad
                 }
             }
         }
-       ** stage("TRIVY"){
+        
+        stage("TRIVY"){
             steps{
                 sh "trivy image nasi101/netflix:latest > trivyimage.txt" 
             }
-        }**
-        **stage('Deploy to container'){
+        }
+        
+        stage('Deploy to container'){
             steps{
                 sh 'docker run -d --name netflix -p 8081:80 nasi101/netflix:latest'
             }
         }
     }
-}**
+}
 
 
 If you get docker login failed errorr
 
-**sudo su
-sudo usermod -aG docker jenkins
-sudo systemctl restart jenkins**
+**sudo su**
+
+**sudo usermod -aG docker jenkins**
+
+**sudo systemctl restart jenkins**
 
 **Phase 4: Monitoring**
 
@@ -340,17 +378,22 @@ Set up Prometheus and Grafana to monitor your application.
 
 First, create a dedicated Linux user for Prometheus and download Prometheus:
 
-**sudo useradd --system --no-create-home --shell /bin/false prometheus
-wget https://github.com/prometheus/prometheus/releases/download/v2.47.1/prometheus-2.47.1.linux-amd64.tar.gz**
+**sudo useradd --system --no-create-home --shell /bin/false prometheus**
+
+**wget https://github.com/prometheus/prometheus/releases/download/v2.47.1/prometheus-2.47.1.linux-amd64.tar.gz**
 
 Extract Prometheus files, move them, and create directories:
 
-**tar -xvf prometheus-2.47.1.linux-amd64.tar.gz
-cd prometheus-2.47.1.linux-amd64/
-sudo mkdir -p /data /etc/prometheus
-sudo mv prometheus promtool /usr/local/bin/
-sudo mv consoles/ console_libraries/ /etc/prometheus/
-sudo mv prometheus.yml /etc/prometheus/prometheus.yml**
+**tar -xvf prometheus-2.47.1.linux-amd64.tar.gz**
+
+**cd prometheus-2.47.1.linux-amd64**
+**sudo mkdir -p /data /etc/prometheus**
+
+**sudo mv prometheus promtool /usr/local/bin/**
+
+**sudo mv consoles/ console_libraries/ /etc/prometheus/**
+
+**sudo mv prometheus.yml /etc/prometheus/prometheus.yml**
 
 Set ownership for directories:
 
@@ -362,30 +405,47 @@ Create a systemd unit configuration file for Prometheus:
 
 Add the following content to the prometheus.service file:
 
-**[Unit]
-Description=Prometheus
-Wants=network-online.target
-After=network-online.target**
+**[Unit]**
 
-**StartLimitIntervalSec=500
-StartLimitBurst=5**
+**Description=Prometheus**
 
-**[Service]
-User=prometheus
-Group=prometheus
-Type=simple
-Restart=on-failure
-RestartSec=5s
-ExecStart=/usr/local/bin/prometheus \
-  --config.file=/etc/prometheus/prometheus.yml \
-  --storage.tsdb.path=/data \
-  --web.console.templates=/etc/prometheus/consoles \
-  --web.console.libraries=/etc/prometheus/console_libraries \
-  --web.listen-address=0.0.0.0:9090 \
-  --web.enable-lifecycle**
+**Wants=network-online.target**
 
-**[Install]
-WantedBy=multi-user.target**
+**After=network-online.target**
+
+**StartLimitIntervalSec=500**
+
+**StartLimitBurst=5**
+
+**[Service]**
+
+**User=prometheus**
+
+**Group=prometheus**
+
+**Type=simple**
+
+**Restart=on-failure**
+
+**RestartSec=5s**
+
+**ExecStart=/usr/local/bin/prometheus** \
+
+  **--config.file=/etc/prometheus/prometheus.yml** \
+  
+  **--storage.tsdb.path=/data** \
+  
+  **--web.console.templates=/etc/prometheus/consoles** \
+  
+  **--web.console.libraries=/etc/prometheus/console_libraries** \
+  
+  **--web.listen-address=0.0.0.0:9090** \
+  
+  **--web.enable-lifecycle**
+
+**[Install]**
+
+**WantedBy=multi-user.target**
 
 Here's a brief explanation of the key parts in this prometheus.service file:
 
@@ -399,8 +459,9 @@ Here's a brief explanation of the key parts in this prometheus.service file:
 
 Enable and start Prometheus:
 
-**sudo systemctl enable prometheus
-sudo systemctl start prometheus**
+**sudo systemctl enable prometheus**
+
+**sudo systemctl start prometheus**
 
 Verify Prometheus's status:
 
@@ -414,14 +475,15 @@ http://<your-server-ip>:9090
 
 Create a system user for Node Exporter and download Node Exporter:
 
-**sudo useradd --system --no-create-home --shell /bin/false node_exporter
-wget https://github.com/prometheus/node_exporter/releases/download/v1.6.1/node_exporter-1.6.1.linux-amd64.tar.gz**
+**sudo useradd --system --no-create-home --shell /bin/false node_exporter**
+
+**wget https://github.com/prometheus/node_exporter/releases/download/v1.6.1/node_exporter-1.6.1.linux-amd64.tar.gz**
 
 Extract Node Exporter files, move the binary, and clean up:
 
-**tar -xvf node_exporter-1.6.1.linux-amd64.tar.gz
-sudo mv node_exporter-1.6.1.linux-amd64/node_exporter /usr/local/bin/
-rm -rf node_exporter***
+**tar -xvf node_exporter-1.6.1.linux-amd64.tar.gz**
+**sudo mv node_exporter-1.6.1.linux-amd64/node_exporter /usr/local/bin/**
+**rm -rf node_exporter**
 
 Create a systemd unit configuration file for Node Exporter:
 
@@ -429,31 +491,43 @@ Create a systemd unit configuration file for Node Exporter:
 
 Add the following content to the node_exporter.service file:
 
-**[Unit]
-Description=Node Exporter
-Wants=network-online.target
-After=network-online.target**
+**[Unit]**
 
-**StartLimitIntervalSec=500
-StartLimitBurst=5**
+**Description=Node Exporter**
 
-**[Service]
-User=node_exporter
-Group=node_exporter
-Type=simple
-Restart=on-failure
-RestartSec=5s
-ExecStart=/usr/local/bin/node_exporter --collector.logind**
+**Wants=network-online.target**
 
-**[Install]
-WantedBy=multi-user.target**
+**After=network-online.target**
+
+**StartLimitIntervalSec=500**
+
+**StartLimitBurst=5**
+
+**[Service]**
+
+**User=node_exporter**
+
+**Group=node_exporter**
+
+**Type=simple**
+
+**Restart=on-failure**
+
+**RestartSec=5s**
+
+**ExecStart=/usr/local/bin/node_exporter --collector.logind**
+
+**[Install]**
+
+**WantedBy=multi-user.target**
 
 Replace --collector.logind with any additional flags as needed.
 
 Enable and start Node Exporter:
 
-**sudo systemctl enable node_exporter
-sudo systemctl start node_exporter**
+**sudo systemctl enable node_exporter**
+
+**sudo systemctl start node_exporter**
 
 Verify the Node Exporter's status:
 
@@ -469,18 +543,25 @@ Integrate Jenkins with Prometheus to monitor the CI/CD pipeline.
 
 To configure Prometheus to scrape metrics from Node Exporter and Jenkins, you need to modify the prometheus.yml file. Here is an example prometheus.yml configuration for your setup:
 
-**global:
-  scrape_interval: 15s**
+**global:**
+
+  **scrape_interval: 15s**
 
 **scrape_configs:**
-  **- job_name: 'node_exporter'
-    static_configs:
-      - targets: ['localhost:9100']**
 
-  **- job_name: 'jenkins'
-    metrics_path: '/prometheus'
-    static_configs:
-      - targets: ['<your-jenkins-ip>:<your-jenkins-port>']**
+  **- job_name: 'node_exporter'**
+    
+    **static_configs:**
+      
+      **- targets: ['localhost:9100']**
+
+  **- job_name: 'jenkins'**
+  
+    **metrics_path: '/prometheus'**
+    
+    **static_configs:**
+    
+      **- targets: ['<your-jenkins-ip>:<your-jenkins-port>']**
 
 Make sure to replace <your-jenkins-ip> and <your-jenkins-port> with the appropriate values for your Jenkins setup.
 
@@ -504,8 +585,9 @@ Install Grafana on Ubuntu 22.04 and Set it up to Work with Prometheus
 
 First, ensure that all necessary dependencies are installed:
 
-sudo apt-get update
-sudo apt-get install -y apt-transport-https software-properties-common
+**sudo apt-get update**
+
+**sudo apt-get install -y apt-transport-https software-properties-common**
 
 **Step 2: Add the GPG Key:**
 
@@ -523,23 +605,25 @@ echo "deb https://packages.grafana.com/oss/deb stable main" | sudo tee -a /etc/a
 
 Update the package list and install Grafana:
 
-sudo apt-get update
-sudo apt-get -y install grafana
+**sudo apt-get update**
+
+**sudo apt-get -y install grafana**
 
 **Step 5: Enable and Start Grafana Service:**
 
 To automatically start Grafana after a reboot, enable the service:
 
-sudo systemctl enable grafana-server
+**sudo systemctl enable grafana-server**
+
 Then, start Grafana:
 
-sudo systemctl start grafana-server
+**sudo systemctl start grafana-server**
 
 **Step 6: Check Grafana Status:**
 
 Verify the status of the Grafana service to ensure it's running correctly:
 
-sudo systemctl status grafana-server
+**sudo systemctl status grafana-server**
 
 **Step 7: Access Grafana Web Interface:**
 
@@ -635,10 +719,13 @@ Add a Job to Scrape Metrics on nodeip:9001/metrics in prometheus.yml:
 
 Update your Prometheus configuration (prometheus.yml) to add a new job for scraping metrics from nodeip:9001/metrics. You can do this by adding the following configuration to your prometheus.yml file:
 
-  **- job_name: 'Netflix'
-    metrics_path: '/metrics'
-    static_configs:
-      - targets: ['node1Ip:9100']**
+  **- job_name: 'Netflix'**
+    
+    **metrics_path: '/metrics'**
+    
+    **static_configs:**
+    
+      **- targets: ['node1Ip:9100']**
 
 Replace 'your-job-name' with a descriptive name for your job. The static_configs section specifies the targets to scrape metrics from, and in this case, it's set to nodeip:9001.
 
