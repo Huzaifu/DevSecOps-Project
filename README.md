@@ -26,9 +26,13 @@ Clone your application's code repository onto the EC2 instance:
 - Set up Docker on the EC2 instance:
 
 sudo apt-get update
+
 sudo apt-get install docker.io -y
+
 sudo usermod -aG docker $USER  # Replace with your system's username, e.g., 'ubuntu'
+
 newgrp docker
+
 sudo chmod 777 /var/run/docker.sock
 
 - Build and run your application using Docker containers:
